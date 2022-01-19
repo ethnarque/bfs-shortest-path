@@ -1,52 +1,81 @@
-import type { Find, Queue } from "./types";
+import type { FindPath, Grid, Queue } from "./types";
 
-function isValidCoord(x: number, y: number, grid: number[][]) {
+function isValid(x: number, y: number, grid: Grid) {
   return x >= 0 && x < grid.length && y >= 0 && y < grid.length;
 }
 
-export const find: Find = (grid, input) => {
-  const { start, finish } = input;
+function generateVisitedMap(grid: Grid) {
+  const rows = new Array(grid.length).fill("");
+  return rows.map((_, i) => new Array(grid[i].length).fill(false));
+}
 
-  // Array for all possible directions
+export const findPath: FindPath = (grid, input) => {
+  const { start, finish } = input;
+  const [startX, startY] = start;
+  const [finishX, finishY] = finish;
+
+  // Usable direction possible for the bfs
   const directions = [
     [-1, 0], // up
     [1, 0], // down
     [0, -1], // left
-    [0, 1], //right
+    [0, 1], // right
   ];
 
-  const queue: Queue[] = [];
-
-  grid[2][4] = 9;
-
-  const source = { coords: [...start], distance: 1 };
-
+  const source = { coords: start, distance: 1 };
+  const visitedGrid = generateVisitedMap(grid);
+  let queue: Queue | any[] = []; // [2,4]
   queue.push(source);
 
   while (queue.length) {
+    // Vérifie les valeurs de départ
+    if (grid[startX][startY] === 0 || grid[finishX][finishY] === 0) {
+      return {
+        success: false,
+        message: `Pas possible car la valeur à la position de début ou de fin est de 0`,
+      };
+    }
+
+    // Récupere les positions du 1er élément du tableau
+    const currentPosition = queue.shift();
+
     const {
-      coords: [x, y],
+      coords: [currentX, currentY],
       distance,
-    } = queue.shift();
+    } = currentPosition;
 
+    // Récuperation des mouvements
+    // Pour chaque entrée du tableau direction
     for (let [moveX, moveY] of directions) {
-      const nextX = x + moveX;
-      const nextY = y + moveY;
+      const nextX: number = currentX + moveX;
+      const nextY: number = currentY + moveY;
+      // Found finish coords
 
-      // Found the right paths
-      if (nextX == finish[0] && nextY == finish[1]) {
-        // return the path that led to the find
-        console.log(grid);
-        console.log("hit", [nextX, nextY], "distance", distance);
-        return;
+      // Victory condition
+      if (nextX === finish[0] && nextY === finish[1]) {
+        grid[nextX][nextY] = 7;
+
+        return {
+          distance,
+          success: true,
+          coords: [nextX, nextY],
+          souceMap: visitedGrid,
+        };
       }
 
-      if (isValidCoord(nextX, nextY, grid) && grid[nextX][nextY] === 1) {
+      if (isValid(nextX, nextY, grid) && grid[nextX][nextY] === 1) {
+        visitedGrid[nextX][nextY] = true;
         grid[nextX][nextY] = 9;
         queue.push({ coords: [nextX, nextY], distance: distance + 1 });
       }
 
-      // console.log(grid[2 + moveX][4 + moveY]);
+      // Defeat
+      // if (!queue.length && nextX !== end[0] && nextY !== end[1]) {
+      //   console.log(`Pas possible, coincé LOL à la position [${x},${y}]`);
+      //   grid[x][7] = 7;
+      //   return;
+      // }
     }
   }
+  return { success: false };
 };

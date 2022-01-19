@@ -1,3 +1,4 @@
+export type Grid = number[][];
 export interface Input {
   start: number[];
   finish: number[];
@@ -8,4 +9,19 @@ export interface Queue {
   distance: number;
 }
 
-export type Find = (grid: number[][], input: Input) => any;
+export interface ErrorResult {
+  message: string;
+  coords: Queue["coords"];
+}
+
+export interface SuccessResult extends Queue {
+  souceMap: boolean[][];
+}
+
+export interface Result extends Partial<Queue> {
+  message?: string;
+  success: boolean;
+  souceMap?: boolean[][];
+}
+
+export type FindPath = (map: number[][], input: Input) => Result;
