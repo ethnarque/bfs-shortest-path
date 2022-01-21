@@ -1,14 +1,5 @@
 import type { FindPath, Grid, Queue } from "./types";
 
-function isValid(x: number, y: number, grid: Grid) {
-  return x >= 0 && x < grid.length && y >= 0 && y < grid.length;
-}
-
-function generateVisitedMap(grid: Grid) {
-  const rows = new Array(grid.length).fill("");
-  return rows.map((_, i) => new Array(grid[i].length).fill(false));
-}
-
 export const findPath: FindPath = (grid, input) => {
   const { start, finish } = input;
   const [startX, startY] = start;
@@ -22,13 +13,19 @@ export const findPath: FindPath = (grid, input) => {
     [0, 1], // right
   ];
 
-  const source = { coords: start, distance: 1 };
-  const visitedGrid = generateVisitedMap(grid);
-  let queue: Queue | any[] = []; // [2,4]
-  queue.push(source);
+  const visitedTiles = generateVisitedGrid(grid);
+
+  const source = { coords: start, distance: 0 };
+  const queue: Queue[] = [source]; // start with [2,4]
 
   while (queue.length) {
-    // Vérifie les valeurs de départ
+    // Extract data of the first item of array
+    const { coords, distance } = queue.shift()!;
+    const [currentX, currentY] = coords;
+
+    // TODO:
+    // a conditional params `checkOnStart` boolean to overide start and finish
+    // or check if start and finish are 0
     if (grid[startX][startY] === 0 || grid[finishX][finishY] === 0) {
       return {
         success: false,
@@ -36,46 +33,40 @@ export const findPath: FindPath = (grid, input) => {
       };
     }
 
-    // Récupere les positions du 1er élément du tableau
-    const currentPosition = queue.shift();
+    // Victory
+    if (currentX === finishX && currentY === finishY) {
+      grid[currentX][currentY] = 7;
 
-    const {
-      coords: [currentX, currentY],
-      distance,
-    } = currentPosition;
+      return {
+        distance,
+        success: true,
+        coords: [currentX, currentY],
+        visitedTiles,
+      };
+    }
 
-    // Récuperation des mouvements
-    // Pour chaque entrée du tableau direction
+    // For each possible move
     for (let [moveX, moveY] of directions) {
+      // Simulate movement input
       const nextX: number = currentX + moveX;
       const nextY: number = currentY + moveY;
-      // Found finish coords
-
-      // Victory condition
-      if (nextX === finish[0] && nextY === finish[1]) {
-        grid[nextX][nextY] = 7;
-
-        return {
-          distance,
-          success: true,
-          coords: [nextX, nextY],
-          souceMap: visitedGrid,
-        };
-      }
 
       if (isValid(nextX, nextY, grid) && grid[nextX][nextY] === 1) {
-        visitedGrid[nextX][nextY] = true;
+        visitedTiles[nextX][nextY] = true;
         grid[nextX][nextY] = 9;
         queue.push({ coords: [nextX, nextY], distance: distance + 1 });
       }
-
-      // Defeat
-      // if (!queue.length && nextX !== end[0] && nextY !== end[1]) {
-      //   console.log(`Pas possible, coincé LOL à la position [${x},${y}]`);
-      //   grid[x][7] = 7;
-      //   return;
-      // }
     }
   }
-  return { success: false };
+  // Defeat
+  return { success: false, message: "Impossible" };
 };
+
+function isValid(x: number, y: number, grid: Grid) {
+  return x >= 0 && x < grid.length && y >= 0 && y < grid.length;
+}
+
+function generateVisitedGrid(grid: Grid) {
+  const rows = new Array(grid.length).fill("");
+  return rows.map((_, i) => new Array(grid[i].length).fill(false));
+}
