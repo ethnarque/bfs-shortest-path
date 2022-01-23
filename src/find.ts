@@ -29,7 +29,8 @@ export const findPath: FindPath = (grid, input) => {
     if (grid[startX][startY] === 0 || grid[finishX][finishY] === 0) {
       return {
         success: false,
-        message: `Pas possible car la valeur à la position de début ou de fin est de 0`,
+        message: `Impossible start or end tile value is 0`,
+        grid,
       };
     }
 
@@ -39,6 +40,7 @@ export const findPath: FindPath = (grid, input) => {
 
       return {
         distance,
+        grid,
         success: true,
         coords: [currentX, currentY],
         visitedTiles,
@@ -59,7 +61,7 @@ export const findPath: FindPath = (grid, input) => {
     }
   }
   // Defeat
-  return { success: false, message: "Impossible" };
+  return { grid, success: false, message: "Impossible for BFS to find a path" };
 };
 
 function isValid(x: number, y: number, grid: Grid) {

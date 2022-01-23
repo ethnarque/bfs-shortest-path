@@ -1,4 +1,5 @@
 export type Grid = number[][];
+
 export interface Input {
   start: number[];
   finish: number[];
@@ -22,6 +23,7 @@ export interface Result extends Partial<Queue> {
   message?: string;
   success: boolean;
   souceMap?: boolean[][];
+  grid: Grid;
 }
 
 export type FindPath = (map: number[][], input: Input) => Result;
